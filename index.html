@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>内部規定集 整備支援 操作デモ</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --navy:#0b2545; --navy2:#16406f; --blue:#1c5fa8; --blue-l:#eef4fb;
+    --orange:#e8590c; --orange-l:#fff4ec;
+    --ink:#1c2126; --gray:#5a6470; --gray2:#8b949e;
+    --line:#dfe4ea; --line2:#eef1f4; --bg:#f4f7fa; --card:#fff;
+    --ok:#15722f; --ok-l:#ecf7ef; --ok-b:#c6e4cf;
+    --warn:#a85c00; --warn-l:#fff6e8; --warn-b:#f0dcbc;
+    --ng:#c0263c; --ng-l:#fdeef0; --ng-b:#f3ccd4;
+  }
+  body{font-family:"Yu Gothic UI","Hiragino Kaku Gothic ProN",Meiryo,"Segoe UI",sans-serif;
+       font-size:14.5px;line-height:1.75;color:var(--ink);background:var(--bg);-webkit-text-size-adjust:100%}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .ic{width:18px;height:18px;flex:0 0 auto;vertical-align:-3.5px}
+  .ic.lg{width:26px;height:26px}
+  .ic.sm{width:15px;height:15px}
+
+  .ban{background:#fff8e6;border-bottom:1px solid #ecd794;color:#6f5300;padding:8px 20px;
+       font-size:12.5px;line-height:1.65}
+  .ban b{color:#523d00}
+
+  header{background:#fff;border-bottom:1px solid var(--line)}
+  .hin{padding:14px 20px 0;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;flex:0 0 auto;color:#fff;
+        background:linear-gradient(135deg,var(--navy),var(--blue));
+        display:flex;align-items:center;justify-content:center}
+  h1{font-size:19px;font-weight:700;color:var(--navy)}
+  .sub{font-size:12.5px;color:var(--gray);margin-top:1px}
+  .srcbar{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+  .src{border:1px solid var(--line);border-radius:7px;padding:6px 12px;background:#fbfcfd;min-width:150px}
+  .src .l{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--gray2)}
+  .src .n{font-size:12.5px;font-weight:700;color:var(--navy);margin-top:1px}
+  .src .m{font-size:10.5px;color:var(--gray)}
+
+  .tabs{display:flex;gap:2px;margin-top:11px;padding:0 14px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{padding:10px 14px;font-size:13.5px;color:#39424c;border-bottom:2px solid transparent;
+               white-space:nowrap;font-weight:500;display:flex;align-items:center;gap:7px}
+  .tabs button:hover{color:var(--blue)}
+  .tabs button.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+  .tabs button .n{background:var(--line2);color:var(--gray);border-radius:9px;padding:0 7px;font-size:11px;font-weight:700}
+  .tabs button.on .n{background:var(--blue-l);color:var(--blue)}
+  .pane{display:none;padding:18px 20px 52px}
+  .pane.on{display:block}
+
+  h2.sec{font-size:14px;color:var(--navy);font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  h2.sec::before{content:"";width:4px;height:16px;background:var(--blue);border-radius:2px;flex:0 0 auto}
+  h2.sec .tail{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--gray)}
+  .note{font-size:12.5px;color:var(--gray);line-height:1.75}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:9px}
+  .pad{padding:14px 16px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px 15px;border-top:3px solid var(--navy)}
+  .kpi .l{font-size:12px;color:var(--gray)}
+  .kpi .v{font-size:27px;font-weight:700;color:var(--navy);line-height:1.2}
+  .kpi .v small{font-size:14px;color:var(--gray);margin-left:2px}
+  .kpi .d{font-size:11.5px;color:var(--gray2);margin-top:2px;line-height:1.55}
+  .kpi.ok{border-top-color:var(--ok)} .kpi.ok .v{color:var(--ok)}
+  .kpi.warn{border-top-color:var(--warn)} .kpi.warn .v{color:var(--warn)}
+  .kpi.ng{border-top-color:var(--ng)} .kpi.ng .v{color:var(--ng)}
+  .kpi.acc{border-top-color:var(--orange)} .kpi.acc .v{color:var(--orange)}
+
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;
+        border-radius:5px;padding:2px 9px;white-space:nowrap;border:1px solid transparent}
+  .p-ok{background:var(--ok-l);color:var(--ok);border-color:var(--ok-b)}
+  .p-warn{background:var(--warn-l);color:var(--warn);border-color:var(--warn-b)}
+  .p-ng{background:var(--ng-l);color:var(--ng);border-color:var(--ng-b)}
+  .tag{display:inline-block;font-size:11px;background:var(--line2);color:var(--gray);
+       border-radius:5px;padding:2px 8px;white-space:nowrap}
+
+  .filt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+  .filt button{min-height:38px;padding:0 15px;border-radius:19px;border:1.5px solid var(--line);
+               background:#fff;font-size:12.5px;font-weight:700;color:var(--gray)}
+  .filt button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:15px;align-items:start}
+  .tbwrap{border:1px solid var(--line);border-radius:9px;overflow-x:auto;background:#fff;max-width:100%}
+  table.tb{width:100%;border-collapse:collapse;font-size:12.8px}
+  table.tb th{background:#f4f6f8;color:var(--navy);font-weight:700;text-align:left;padding:9px 11px;
+              border-bottom:1px solid var(--line);white-space:nowrap;font-size:11.5px}
+  table.tb td{padding:9px 11px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.6}
+  table.tb tr:last-child td{border-bottom:none}
+  table.tb tbody tr{cursor:pointer}
+  table.tb tbody tr:hover{background:#fafbfc}
+  table.tb tbody tr.on{background:var(--blue-l)}
+  .cat{font-size:11px;color:var(--gray2);display:block}
+  .itm{font-weight:700;color:var(--navy)}
+  .hit{font-size:12px;color:#2b3138}
+  .hit b{color:var(--navy)}
+  .conf{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--gray)}
+  .conf i{display:block;width:44px;height:5px;background:var(--line2);border-radius:3px;overflow:hidden}
+  .conf i b{display:block;height:100%;background:var(--blue);border-radius:3px}
+  .conf.lo i b{background:var(--warn)}
+
+  .side{position:sticky;top:14px}
+  .det{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .det .dh{padding:13px 16px;border-bottom:1px solid var(--line);background:#fafbfc}
+  .det .dh .t{font-size:15px;font-weight:700;color:var(--navy);line-height:1.5}
+  .det .dh .c{font-size:11.5px;color:var(--gray2);margin-top:2px}
+  .det .db{padding:14px 16px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12.5px;margin-bottom:12px}
+  .kv dt{color:var(--gray);white-space:nowrap;font-weight:700}
+  .kv dd{color:var(--ink);line-height:1.7}
+  .quote{background:#fafbfc;border:1px solid var(--line);border-left:3px solid var(--blue);
+         border-radius:0 7px 7px 0;padding:11px 13px;font-size:12.8px;line-height:1.9;color:#2b3138}
+  .quote .qh{font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--gray2);margin-bottom:5px}
+  .why{margin-top:12px;background:var(--blue-l);border-radius:7px;padding:11px 13px;font-size:12.5px;line-height:1.75}
+  .why b{color:var(--navy)}
+  .why.ngbox{background:var(--ng-l)}
+  .why.warnbox{background:var(--warn-l)}
+  .empty{padding:34px 16px;text-align:center;color:var(--gray2);font-size:13px}
+
+  ul.bl{list-style:none;margin:8px 0 0}
+  ul.bl li{font-size:12.8px;line-height:1.75;padding-left:16px;position:relative;margin-bottom:5px}
+  ul.bl li::before{content:"";position:absolute;left:3px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--blue)}
+  ul.bl li b{color:var(--navy)}
+
+  /* ひな型タブ */
+  .chapgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px;align-items:start}
+  .paper{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .paper .ph{padding:9px 15px;background:#fafbfc;border-bottom:1px solid var(--line);
+             font-size:12px;color:var(--gray);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .paper .ph b{color:var(--navy);font-size:13px}
+  .paper .pb{padding:20px 24px;font-size:13px;line-height:1.95;max-height:560px;overflow-y:auto}
+  .paper .pb h4{font-size:15px;color:var(--navy);text-align:center;margin-bottom:14px}
+  .paper .pb h5{font-size:13.5px;color:var(--navy);margin:16px 0 6px}
+  .paper .pb .art{font-weight:700;color:var(--navy);margin-top:10px}
+  .paper .pb p{margin:0 0 4px;text-indent:1em}
+  .paper .pb p.item{text-indent:0;padding-left:1.9em}
+  .paper .pb mark{background:#fff3bf;padding:0 2px;border-radius:2px}
+
+  /* パイプライン */
+  .pipe{display:grid;grid-template-columns:1fr 350px;gap:15px;align-items:start}
+  .stp{display:grid;grid-template-columns:32px 1fr;gap:12px;position:relative;padding-bottom:13px}
+  .stp::before{content:"";position:absolute;left:15.5px;top:30px;bottom:0;width:1.5px;background:var(--line)}
+  .stp:last-child{padding-bottom:0}.stp:last-child::before{display:none}
+  .stp .dot{width:32px;height:32px;border-radius:50%;background:#fff;border:1.5px solid var(--line);
+            display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+            color:var(--gray2);position:relative;z-index:1}
+  .stp .sb{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 14px;min-width:0}
+  .stp .sn{font-size:13px;font-weight:700;color:var(--navy)}
+  .stp .sd{font-size:12px;color:var(--gray);margin-top:2px;line-height:1.65}
+  .stp .out{font-size:12px;color:var(--blue);margin-top:5px;font-weight:700;display:none}
+  .stp.run .dot{border-color:var(--blue);color:var(--blue);background:var(--blue-l);animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(28,95,168,.35)}50%{box-shadow:0 0 0 6px rgba(28,95,168,0)}}
+  .stp.done .dot{border-color:var(--ok);background:var(--ok);color:#fff}
+  .stp.done .sb{border-color:var(--ok-b)}
+  .stp.done .out{display:block}
+  .logbox{background:#0d1b2a;border-radius:9px;padding:12px 14px;height:min(56vh,460px);overflow-y:auto;
+          font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.2px;line-height:1.9;color:#c9d6e2}
+  .logbox .l{white-space:pre-wrap;word-break:break-all}
+  .logbox .t{color:#5f7d99}.logbox .ok{color:#6ee7a0}.logbox .wn{color:#fbbf6e}.logbox .in{color:#8fc4f5}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;
+       border-radius:8px;font-size:14px;font-weight:700;background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .btn:hover{background:#f7f9fb}
+  .btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.pri:hover{background:#123457}
+  .btn.orn{background:var(--orange);border-color:var(--orange);color:#fff}
+  .btn:disabled{opacity:.55;cursor:default}
+
+  footer{border-top:1px solid var(--line);background:#fff;padding:20px;text-align:center;
+         font-size:12px;color:var(--gray2);line-height:1.85}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);
+         background:var(--navy);color:#fff;padding:13px 24px;border-radius:26px;font-size:13.5px;font-weight:700;
+         box-shadow:0 10px 28px rgba(11,37,69,.3);opacity:0;transition:.3s;z-index:99;max-width:calc(100vw - 32px)}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:1080px){
+    .grid,.pipe,.chapgrid{grid-template-columns:1fr}
+    .side{position:static}
+  }
+</style>
+</head>
+<body>
+
+<div class="ban">
+  <b>デモ画面です。</b>
+  掲載の項目・規程名・ページ番号・抜粋文はすべて<b>架空のサンプルデータ</b>です。実在の代理店の規定集および損害保険協会の資料は使用していません。
+</div>
+
+<header>
+  <div class="hin">
+    <div class="logo">
+      <svg class="ic lg" viewBox="0 0 24 24"><path d="M4 4h9l3 3v13H4z"/><path d="M8 11h6M8 15h4"/><path d="M18 8v12"/><circle cx="18" cy="5.5" r="2"/></svg>
+    </div>
+    <div>
+      <h1>内部規定集 整備支援</h1>
+      <div class="sub">「備えておくべき資料」の該当箇所を洗い出し、不足している規程を確定します</div>
+    </div>
+    <div class="srcbar">
+      <div class="src"><div class="l">突合元①</div><div class="n">内部規程集</div><div class="m">131ページ / 12規程</div></div>
+      <div class="src"><div class="l">突合元②</div><div class="n">業界コンプライアンスガイド</div><div class="m">218ページ</div></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="on" data-p="p1"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>該当箇所マッピング<span class="n" id="tabn1">–</span></button>
+    <button data-p="p2"><svg class="ic" viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>要作成リスト<span class="n" id="tabn2">–</span></button>
+    <button data-p="p3"><svg class="ic" viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>規程ひな型</button>
+    <button data-p="p4"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h5l2 3h11"/><path d="M3 12h5l2 3h11"/><path d="M3 17h5l2 3h6"/></svg>処理の流れ</button>
+  </div>
+</header>
+
+<!-- ================= P1 マッピング ================= -->
+<div class="pane on" id="p1">
+  <div class="kpis" id="kpis"></div>
+
+  <div class="filt" id="filt"></div>
+
+  <div class="grid">
+    <div class="tbwrap">
+      <table class="tb">
+        <thead><tr>
+          <th style="min-width:220px">備えておくべき資料</th>
+          <th style="min-width:96px">判定</th>
+          <th style="min-width:230px">該当箇所</th>
+          <th style="min-width:104px">確信度</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="side"><div id="det"></div></div>
+  </div>
+</div>
+
+<!-- ================= P2 要作成 ================= -->
+<div class="pane" id="p2">
+  <div class="note" style="margin-bottom:14px">
+    突合の結果、内部規程集・業界ガイドのいずれにも該当が見つからなかった項目です。
+    <b>「探したが無かった」ことの根拠</b>を添えているため、そのまま作成対象として確定できます。
+  </div>
+  <div id="ngList"></div>
+</div>
+
+<!-- ================= P3 ひな型 ================= -->
+<div class="pane" id="p3">
+  <div class="note" style="margin-bottom:14px">
+    既存12規程の章立てを解析したところ、<b>ほぼ同一のパターン</b>で構成されていました。
+    新しく作る規程もこの型に沿えば、既存と違和感のない体裁になります。
+  </div>
+
+  <div class="card pad" style="margin-bottom:16px">
+    <h2 class="sec">既存規程から抽出した章立てパターン<span class="tail">12規程を解析</span></h2>
+    <div class="tbwrap" style="border:none">
+      <table class="tb">
+        <thead><tr><th style="min-width:190px">規程</th><th>章立て</th></tr></thead>
+        <tbody>
+          <tr><td class="itm">法令等遵守規程</td><td class="hit">総則 / 体制・役割 / <b>マニュアル及びプログラム</b> / 違反発生時の対応 / リーガル・チェック / 評価・改善活動 / 罰則</td></tr>
+          <tr><td class="itm">保険募集管理規程</td><td class="hit">総則 / 体制・役割 / <b>マニュアル等</b> / <b>適切な募集行為の実施</b> / 評価・改善活動 / 罰則</td></tr>
+          <tr><td class="itm">顧客サポート等管理規程</td><td class="hit">総則 / 体制・役割 / <b>マニュアル</b> / <b>適切な顧客サポート等管理の実施</b> / 評価・改善活動 / 罰則</td></tr>
+          <tr><td class="itm">顧客情報管理規程</td><td class="hit">総則 / 体制・役割 / 運用 / 罰則</td></tr>
+          <tr><td class="itm">外部委託管理規程</td><td class="hit">総則 / 外部委託基準 / 外部委託管理 / 罰則</td></tr>
+          <tr><td class="itm">支社管理規程</td><td class="hit">総則 / 支社の設置基準等 / 支社長の任命、役割</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="why" style="margin-top:12px">
+      <b>共通パターン：</b>　総則　→　体制・役割　→　○○マニュアル等　→　適切な○○の実施　→　評価・改善活動　→　罰則<br>
+      この6章構成に当てはめることで、<b>不足している規程を既存と同じ書きぶりで作成できます。</b>
+    </div>
+  </div>
+
+  <div class="chapgrid">
+    <div class="paper">
+      <div class="ph"><svg class="ic sm" viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5z"/></svg><b>規程ひな型（Word）</b>
+        <span class="tag" style="margin-left:auto">納品物 ③</span></div>
+      <div class="pb">
+        <h4>○○管理規程</h4>
+        <h5>第1章　総則</h5>
+        <div class="art">第1条（目的）</div>
+        <p>この規程は、当社における<mark>○○</mark>に関する基本的事項を定め、もって適切な業務運営の確保を図ることを目的とする。</p>
+        <div class="art">第2条（定義）</div>
+        <p>この規程において<mark>○○</mark>とは、<mark>…………</mark>をいう。</p>
+        <div class="art">第3条（適用範囲）</div>
+        <p>この規程は、当社の全ての役職員に適用する。</p>
+
+        <h5>第2章　体制・役割</h5>
+        <div class="art">第4条（統括責任者）</div>
+        <p>当社は、<mark>○○</mark>に関する統括責任者を置き、代表取締役がこれを任命する。</p>
+        <div class="art">第5条（役職員の責務）</div>
+        <p>役職員は、この規程および関連するマニュアルに従い、<mark>○○</mark>を適切に実施しなければならない。</p>
+
+        <h5>第3章　<mark>○○</mark>マニュアル等</h5>
+        <div class="art">第6条（マニュアルの策定）</div>
+        <p>統括責任者は、<mark>○○</mark>を適切に実施するためのマニュアルを策定し、役職員に周知する。</p>
+
+        <h5>第4章　適切な<mark>○○</mark>の実施</h5>
+        <div class="art">第7条（実施手順）</div>
+        <p class="item">(1) <mark>…………</mark></p>
+        <p class="item">(2) <mark>…………</mark></p>
+        <div class="art">第8条（記録の作成・保存）</div>
+        <p>役職員は、<mark>○○</mark>の実施状況を記録し、<mark>○</mark>年間保存しなければならない。</p>
+
+        <h5>第5章　評価・改善活動</h5>
+        <div class="art">第9条（点検および改善）</div>
+        <p>統括責任者は、年1回以上、<mark>○○</mark>の実施状況を点検し、必要な改善を行う。</p>
+
+        <h5>第6章　罰則</h5>
+        <div class="art">第10条（懲戒）</div>
+        <p>この規程に違反した役職員は、就業規則の定めるところにより懲戒に処することがある。</p>
+      </div>
+    </div>
+
+    <div class="paper">
+      <div class="ph"><svg class="ic sm" viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5z"/></svg><b>事故対応に関する業務規定（ドラフト）</b>
+        <span class="tag" style="margin-left:auto">納品物 ④</span></div>
+      <div class="pb">
+        <h4>事故対応に関する業務規定</h4>
+        <h5>第1章　総則</h5>
+        <div class="art">第1条（目的）</div>
+        <p>この規程は、当社における保険事故発生時の対応に関する基本的事項を定め、顧客に対する迅速かつ適切な対応の確保を図ることを目的とする。</p>
+        <div class="art">第2条（定義）</div>
+        <p>この規程において事故対応とは、顧客からの事故の受付から、保険会社への連絡、顧客への経過報告および保険金支払の完了確認までの一連の業務をいう。</p>
+        <div class="art">第3条（適用範囲）</div>
+        <p>この規程は、当社の全ての役職員に適用する。</p>
+
+        <h5>第2章　体制・役割</h5>
+        <div class="art">第4条（事故対応責任者）</div>
+        <p>当社は、事故対応責任者を置き、代表取締役がこれを任命する。事故対応責任者は、事故対応の全体を統括する。</p>
+        <div class="art">第5条（募集人の責務）</div>
+        <p>募集人は、顧客から事故の連絡を受けた場合、速やかに事故受付簿に記録し、保険会社へ連絡しなければならない。</p>
+
+        <h5>第3章　事故対応マニュアル等</h5>
+        <div class="art">第6条（マニュアルの策定）</div>
+        <p>事故対応責任者は、事故の類型ごとの対応手順を定めたマニュアルを策定し、役職員に周知する。</p>
+
+        <h5>第4章　適切な事故対応の実施</h5>
+        <div class="art">第7条（事故受付）</div>
+        <p>役職員は、事故の連絡を受けた場合、次の事項を確認し記録する。</p>
+        <p class="item">(1) 事故発生の日時および場所</p>
+        <p class="item">(2) 事故の状況および被害の程度</p>
+        <p class="item">(3) 契約内容および補償の範囲</p>
+        <div class="art">第8条（保険会社への連絡）</div>
+        <p>役職員は、事故の受付後、遅滞なく引受保険会社に連絡しなければならない。</p>
+        <div class="art">第9条（顧客への経過報告）</div>
+        <p>役職員は、保険金の支払が完了するまでの間、顧客に対し適時に経過を報告する。</p>
+        <div class="art">第10条（記録の保存）</div>
+        <p>事故受付簿および対応記録は、事故処理の完了の日から5年間保存する。</p>
+
+        <h5>第5章　評価・改善活動</h5>
+        <div class="art">第11条（点検および改善）</div>
+        <p>事故対応責任者は、年1回以上、事故対応の実施状況を点検し、必要な改善を行う。</p>
+
+        <h5>第6章　罰則</h5>
+        <div class="art">第12条（懲戒）</div>
+        <p>この規程に違反した役職員は、就業規則の定めるところにより懲戒に処することがある。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card pad" style="margin-top:16px">
+    <h2 class="sec">このドラフトの作り方</h2>
+    <ul class="bl">
+      <li><b>章立て</b>は既存12規程から抽出した共通パターン（総則→体制・役割→マニュアル等→適切な実施→評価・改善活動→罰則）をそのまま使用</li>
+      <li><b>文体・用語</b>は既存規程から抽出（「〜しなければならない」「役職員」「統括責任者」「就業規則の定めるところにより懲戒に処することがある」など）</li>
+      <li><b>実務の内容</b>は御社へのヒアリングをもとに記載。<b>AIが業務内容を推測して書くことはしません</b></li>
+      <li>最終的な<b>内容の妥当性判断と社内決裁は御社</b>にてお願いします</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================= P4 パイプライン ================= -->
+<div class="pane" id="p4">
+  <div class="note" style="margin-bottom:13px">
+    お預かりした資料に対して、以下の6工程を実施します。<b>「処理を実行」</b>で流れを再現します（デモのため実際の解析は行いません）。
+  </div>
+  <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn orn" id="runBtn" onclick="runPipe()">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>処理を実行
+    </button>
+    <span class="note" id="runNote">前回の実行：2026年8月20日 / 約3分</span>
+  </div>
+  <div class="pipe">
+    <div id="steps"></div>
+    <div>
+      <h2 class="sec">実行ログ</h2>
+      <div class="logbox" id="log"><div class="l t">$ ready — 「処理を実行」で開始します</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  制作：株式会社デジライズ<br>
+  掲載の項目・規程名・ページ番号・抜粋文はすべて架空のサンプルデータです。
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* ========== サンプルデータ（すべて架空） ========== */
+const D = [
+ {c:"法令等遵守", i:"社内規定・規則", s:"ok", src:"内部規程集", loc:"法令等遵守規程 第1章 総則", p:"6", conf:.96,
+  q:"この規程は、当社における法令等の遵守に関する基本的事項を定め、もって適切な業務運営の確保を図ることを目的とする。",
+  why:"「社内規定・規則」に相当する条文が第1章 総則に存在します。規程名・目的条文ともに一致度が高く、そのまま該当資料として提示できます。"},
+ {c:"法令等遵守", i:"コンプライアンス・マニュアル", s:"ok", src:"内部規程集", loc:"コンプライアンス・マニュアル", p:"60〜126", conf:.98,
+  q:"（マニュアル本体・全67ページ）", why:"独立した章として存在します。分量が大きいため、備置資料としては章全体を指定するのが適切です。"},
+ {c:"法令等遵守", i:"コンプライアンス・プログラム", s:"warn", src:"内部規程集", loc:"法令等遵守規程 第3章", p:"7", conf:.61,
+  q:"統括責任者は、毎年度、コンプライアンス・プログラムを策定し、取締役会の承認を得るものとする。",
+  why:"<b>規程上「策定する」との定めはありますが、プログラム本体が規定集内に見当たりません。</b>別ファイルとして管理されている可能性があります。SharePoint内の所在をご確認ください。"},
+ {c:"法令等遵守", i:"法令等違反発生時の対応手順", s:"ok", src:"内部規程集", loc:"法令等遵守規程 第4章 法令等違反発生時の対応", p:"7", conf:.93,
+  q:"役職員は、法令等の違反またはそのおそれのある事実を発見した場合、直ちに統括責任者に報告しなければならない。", why:"章タイトルと内容がともに一致します。"},
+ {c:"法令等遵守", i:"反社会的勢力への対応方針", s:"ok", src:"内部規程集", loc:"反社会的勢力に対する基本方針", p:"10", conf:.99,
+  q:"当社は、反社会的勢力との一切の関係を遮断し、不当要求に対しては断固としてこれを拒絶する。", why:"独立した方針文書として存在します。"},
+
+ {c:"保険募集管理", i:"業務規定", s:"ok", src:"内部規程集", loc:"保険募集管理規程 第1章 総則", p:"11", conf:.97,
+  q:"この規程は、当社における保険募集の適切な管理に関する基本的事項を定めることを目的とする。", why:"規程名・目的条文ともに一致します。"},
+ {c:"保険募集管理", i:"募集管理マニュアル等", s:"ok", src:"内部規程集", loc:"保険募集管理規程 第3章 保険募集管理マニュアル等", p:"12", conf:.94,
+  q:"統括責任者は、適切な保険募集を確保するためのマニュアルを策定し、募集人に周知する。", why:"章タイトルが直接一致します。"},
+ {c:"保険募集管理", i:"募集人に徹底するために用いた資料", s:"ng", src:"", loc:"", p:"", conf:0,
+  why:"規程上は「募集人に周知する」との定めがありますが、<b>実際に周知に用いた資料（研修レジュメ・朝礼資料等）が規定集・業界ガイドのいずれにも存在しません。</b>実施記録として別途整備が必要です。"},
+
+ {c:"意向把握", i:"業務規定・独自マニュアル等", s:"ok", src:"内部規程集", loc:"保険募集管理規程 第4章 適切な募集行為の実施", p:"13", conf:.82,
+  q:"募集人は、顧客の意向を把握したうえで、これに沿った保険商品を提案しなければならない。",
+  why:"独立した「意向把握規程」はありませんが、保険募集管理規程 第4章に該当条文があります。<b>備置資料としてはこの条文を指定すれば足ります。</b>"},
+ {c:"意向把握", i:"募集人に徹底するために用いた資料", s:"ng", src:"", loc:"", p:"", conf:0,
+  why:"意向把握の手順を募集人へ周知した記録（研修資料・チェックシート等）が見当たりません。<b>作成が必要です。</b>"},
+
+ {c:"顧客サポート等管理", i:"業務規定", s:"ok", src:"内部規程集", loc:"顧客サポート等管理規程 第1章 総則", p:"15", conf:.97,
+  q:"この規程は、当社における顧客サポート等の適切な管理に関する基本的事項を定めることを目的とする。", why:"規程名が直接一致します。"},
+ {c:"顧客サポート等管理", i:"苦情対応マニュアル", s:"ok", src:"内部規程集", loc:"顧客サポート等管理規程 第3章 顧客サポート等管理マニュアル", p:"16", conf:.88,
+  q:"統括責任者は、顧客からの苦情等に適切に対応するためのマニュアルを策定する。",
+  why:"「苦情対応マニュアル」という名称ではありませんが、内容が実質的に一致します。名称の差異は判定に含めています。"},
+ {c:"顧客サポート等管理", i:"苦情受付簿", s:"warn", src:"クラウドサーバー", loc:"（規定集内に様式なし）", p:"", conf:.55,
+  why:"規定集内に様式が見当たりません。<b>クラウドサーバー上で運用されているリストが該当する可能性があります。</b>現物をご提示いただければ該当資料として確定できます。"},
+
+ {c:"事故発生時対応", i:"事故対応に関する業務規定", s:"ng", src:"", loc:"", p:"", conf:0,
+  why:"内部規程集・業界ガイドの<b>いずれにも該当する規程が存在しません。</b>実務としては運用されているものの、規程として文書化されていない状態です。<b>優先的に作成が必要です。</b>（ドラフトは「規程ひな型」タブをご覧ください）"},
+ {c:"事故発生時対応", i:"事故受付簿", s:"warn", src:"クラウドサーバー", loc:"（規定集内に様式なし）", p:"", conf:.58,
+  why:"クラウドサーバー上で運用中のリストが該当する可能性があります。現物をご提示いただければ確定できます。"},
+
+ {c:"顧客情報管理", i:"顧客情報管理規程", s:"ok", src:"内部規程集", loc:"顧客情報管理規程 第1章 総則", p:"24", conf:.99,
+  q:"この規程は、当社が取り扱う顧客情報の適切な管理に関する基本的事項を定める。", why:"規程名が完全一致します。"},
+ {c:"顧客情報管理", i:"安全管理措置（取得・入力段階）", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（取得・入力段階）", p:"34", conf:.97,
+  q:"顧客情報を取得する場合は、利用目的を明示し、必要な範囲に限って取得しなければならない。", why:"段階別に独立した規程として整備されています。"},
+ {c:"顧客情報管理", i:"安全管理措置（利用・加工段階）", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（利用・加工段階）", p:"37", conf:.97,
+  q:"顧客情報は、取得時に明示した利用目的の範囲内でのみ利用する。", why:"段階別規程として整備されています。"},
+ {c:"顧客情報管理", i:"安全管理措置（保管・保存段階）", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（保管・保存段階）", p:"41", conf:.97,
+  q:"顧客情報を含む書類は施錠可能な保管庫に保管し、電子データはアクセス権限を設定する。", why:"段階別規程として整備されています。"},
+ {c:"顧客情報管理", i:"安全管理措置（移送・送信段階）", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（移送・送信段階）", p:"44", conf:.96,
+  q:"顧客情報を電子メールで送信する場合は、暗号化その他の安全管理措置を講じる。", why:"段階別規程として整備されています。"},
+ {c:"顧客情報管理", i:"安全管理措置（消去・廃棄段階）", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（消去・廃棄段階）", p:"47", conf:.96,
+  q:"保存期間を経過した顧客情報は、復元できない方法により速やかに消去または廃棄する。", why:"段階別規程として整備されています。"},
+ {c:"顧客情報管理", i:"漏洩事案発生時の対応", s:"ok", src:"内部規程集", loc:"顧客情報の安全管理に係る取扱規程（漏洩事案等への対応の段階）", p:"49", conf:.95,
+  q:"顧客情報の漏洩等の事案が発生した場合、直ちに統括責任者に報告し、二次被害の防止に必要な措置を講じる。", why:"独立した段階別規程として整備されています。"},
+ {c:"顧客情報管理", i:"取扱状況の点検・監査に係る規程", s:"ok", src:"内部規程集", loc:"顧客情報の取扱状況の点検及び監査に係る規程", p:"51", conf:.94,
+  q:"統括責任者は、年1回以上、顧客情報の取扱状況について点検を行う。", why:"規程名が直接一致します。"},
+ {c:"顧客情報管理", i:"外部委託に係る規程", s:"ok", src:"内部規程集", loc:"顧客情報の外部委託に係る規程", p:"53", conf:.95,
+  q:"顧客情報の取扱いを外部に委託する場合は、委託先の選定基準を定め、契約により安全管理措置を義務づける。", why:"規程名が直接一致します。"},
+
+ {c:"外部委託管理", i:"外部委託管理規程", s:"ok", src:"内部規程集", loc:"外部委託管理規程 第1章 総則", p:"55", conf:.98,
+  q:"この規程は、当社が業務を外部に委託する場合の管理に関する基本的事項を定める。", why:"規程名が完全一致します。"},
+ {c:"外部委託管理", i:"委託先の選定基準", s:"ok", src:"内部規程集", loc:"外部委託管理規程 第2章 外部委託基準", p:"55", conf:.91,
+  q:"委託先の選定にあたっては、業務遂行能力、財務状況および情報管理体制を評価する。", why:"章タイトルが「外部委託基準」であり、選定基準に相当します。"},
+
+ {c:"支社管理", i:"支社管理規程", s:"ok", src:"内部規程集", loc:"支社管理規程 第1章 総則", p:"58", conf:.97,
+  q:"この規程は、当社の支社の設置および運営に関する基本的事項を定める。", why:"規程名が完全一致します。"},
+ {c:"支社管理", i:"支社管理・運営マニュアル", s:"ok", src:"内部規程集", loc:"支社管理・運営マニュアル", p:"127", conf:.95,
+  q:"（マニュアル本体・全4ページ）", why:"独立したマニュアルとして存在します。"},
+
+ {c:"内部監査", i:"内部監査の実施指針", s:"ok", src:"内部規程集", loc:"内部監査の実施指針", p:"131", conf:.96,
+  q:"内部監査は、年1回以上実施し、監査結果を代表取締役に報告する。", why:"指針名が完全一致します。"},
+ {c:"内部監査", i:"内部監査結果の報告指針", s:"ok", src:"内部規程集", loc:"内部監査結果の報告指針", p:"131", conf:.93,
+  q:"監査責任者は、監査終了後速やかに監査結果報告書を作成する。", why:"指針名が完全一致します。"},
+ {c:"内部監査", i:"内部監査計画書・監査報告書（実物）", s:"ng", src:"", loc:"", p:"", conf:0,
+  why:"実施指針は整備されていますが、<b>実際に作成された監査計画書・監査報告書が見当たりません。</b>指針に基づく実施記録として備置が必要です。"},
+
+ {c:"教育・研修", i:"研修実施記録", s:"warn", src:"クラウドサーバー", loc:"（規定集内に様式なし）", p:"", conf:.60,
+  why:"クラウドサーバー上の研修実施表が該当する可能性があります。現物をご提示いただければ確定できます。"},
+ {c:"教育・研修", i:"募集人教育の年間計画", s:"ng", src:"", loc:"", p:"", conf:0,
+  why:"年間の教育計画を定めた文書が、規定集・業界ガイドのいずれにも見当たりません。<b>作成が必要です。</b>"},
+];
+
+const SL = {ok:{l:"該当あり",c:"p-ok"}, warn:{l:"要確認",c:"p-warn"}, ng:{l:"要作成",c:"p-ng"}};
+const $ = s => document.querySelector(s);
+let FILTER = "all", CUR = 0;
+
+/* ---- KPI（データから算出。手打ちしないことで件数のズレを防ぐ） ---- */
+const N = k => D.filter(d => d.s === k).length;
+const NCAT = new Set(D.map(d => d.c)).size;
+document.getElementById('kpis').innerHTML = [
+  ["", "備置要求項目", D.length, "件", `${NCAT}カテゴリを横断`],
+  ["ok", "該当あり", N("ok"), "件", "規程・マニュアル内に記載を確認"],
+  ["warn", "要確認", N("warn"), "件", "候補はあるが判断が必要"],
+  ["ng", "該当なし（要作成）", N("ng"), "件", "新たに作成が必要"],
+  ["acc", "突合したページ数", 349, "頁", "処理時間 約3分"],
+].map(([c, l, v, u, d]) =>
+  `<div class="kpi ${c}"><div class="l">${l}</div><div class="v">${v}<small>${u}</small></div>
+   <div class="d">${d}</div></div>`).join('');
+
+/* ---- タブ ---- */
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); $('#' + b.dataset.p).classList.add('on');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ---- フィルタ ---- */
+const FILTERS = [
+  {k:"all",  l:"すべて",   f:() => true},
+  {k:"ng",   l:"要作成",   f:d => d.s === "ng"},
+  {k:"warn", l:"要確認",   f:d => d.s === "warn"},
+  {k:"ok",   l:"該当あり", f:d => d.s === "ok"},
+];
+$('#filt').innerHTML = FILTERS.map(f =>
+  `<button data-k="${f.k}" class="${f.k === FILTER ? 'on' : ''}">${f.l}（${D.filter(f.f).length}件）</button>`).join('');
+$('#filt').querySelectorAll('button').forEach(b => b.onclick = () => {
+  FILTER = b.dataset.k;
+  $('#filt').querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.k === FILTER));
+  renderRows();
+});
+
+function esc(s){ return (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderRows(){
+  const f = FILTERS.find(x => x.k === FILTER).f;
+  const list = D.map((d, idx) => ({d, idx})).filter(o => f(o.d));
+  if (!list.some(o => o.idx === CUR)) CUR = list.length ? list[0].idx : -1;
+  $('#rows').innerHTML = list.map(({d, idx}) => `
+    <tr data-i="${idx}" class="${idx === CUR ? 'on' : ''}">
+      <td><span class="cat">${esc(d.c)}</span><span class="itm">${esc(d.i)}</span></td>
+      <td><span class="pill ${SL[d.s].c}">${SL[d.s].l}</span></td>
+      <td class="hit">${d.loc ? `<b>${esc(d.loc)}</b>${d.p ? `<br>p.${d.p}` : ''}` : '<span style="color:var(--gray2)">—</span>'}</td>
+      <td>${d.conf ? `<span class="conf ${d.conf < .7 ? 'lo' : ''}">${d.conf.toFixed(2)}<i><b style="width:${d.conf*100}%"></b></i></span>`
+                   : '<span style="color:var(--gray2)">—</span>'}</td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">該当する項目はありません。</td></tr>';
+  $('#rows').querySelectorAll('tr[data-i]').forEach(tr => tr.onclick = () => { CUR = +tr.dataset.i; renderRows(); renderDet(); });
+  renderDet();
+}
+
+function renderDet(){
+  if (CUR < 0){ $('#det').innerHTML = '<div class="det"><div class="empty">項目を選択してください。</div></div>'; return; }
+  const d = D[CUR];
+  $('#det').innerHTML = `
+  <div class="det">
+    <div class="dh">
+      <div class="t">${esc(d.i)}</div>
+      <div class="c">${esc(d.c)}</div>
+      <div style="margin-top:8px"><span class="pill ${SL[d.s].c}">${SL[d.s].l}</span></div>
+    </div>
+    <div class="db">
+      <dl class="kv">
+        <dt>突合元</dt><dd>${d.src ? esc(d.src) : '<span style="color:var(--gray2)">該当なし</span>'}</dd>
+        <dt>該当箇所</dt><dd>${d.loc ? esc(d.loc) : '<span style="color:var(--gray2)">—</span>'}</dd>
+        <dt>ページ</dt><dd>${d.p ? 'p.' + d.p : '<span style="color:var(--gray2)">—</span>'}</dd>
+        <dt>確信度</dt><dd>${d.conf ? d.conf.toFixed(2) : '<span style="color:var(--gray2)">—</span>'}</dd>
+      </dl>
+      ${d.q ? `<div class="quote"><div class="qh">根拠となる抜粋</div>${esc(d.q)}</div>` : ''}
+      <div class="why ${d.s === 'ng' ? 'ngbox' : d.s === 'warn' ? 'warnbox' : ''}">
+        <b>判定の理由</b><br>${d.why}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- 要作成リスト ---- */
+$('#ngList').innerHTML = D.filter(d => d.s === "ng").map((d, i) => `
+  <div class="card pad" style="margin-bottom:12px;border-left:4px solid var(--ng)">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px">
+      <span class="pill p-ng">要作成 ${i + 1}</span>
+      <span style="font-size:15px;font-weight:700;color:var(--navy)">${esc(d.i)}</span>
+      <span class="tag">${esc(d.c)}</span>
+    </div>
+    <div style="font-size:13px;line-height:1.8">${d.why}</div>
+  </div>`).join('') + `
+  <div class="card pad" style="margin-top:16px">
+    <h2 class="sec">今回の納品に含まれるもの</h2>
+    <ul class="bl">
+      <li><b>5件すべて</b>について、判定の根拠つきで一覧をお渡しします（Excel）</li>
+      <li>このうち<b>「事故対応に関する業務規定」1本</b>を、既存と同じ体裁でドラフト作成します（Word）</li>
+      <li>残り4件は、お渡しする<b>規程ひな型</b>に沿って御社にて作成いただけます。追加のご依頼も承ります（1本 3〜5万円）</li>
+    </ul>
+  </div>`;
+
+/* ---- パイプライン ---- */
+const STEPS = [
+ {n:"資料の取込", d:"内部規程集・業界ガイド・管理表を読み込む",
+  o:"3ファイル / 349ページを取込",
+  log:[["in","読込 内部規程集.pdf (131p)"],["in","読込 業界コンプライアンスガイド.pdf (218p)"],
+       ["in","読込 備えておくべき資料_管理表.xlsx (30項目)"],["ok","テキストレイヤーを検出 — OCR不要"]]},
+ {n:"規程の構造化", d:"規程・章・条の単位に分解し、既存の型を抽出",
+  o:"12規程 / 68章 / 341条 をツリー化",
+  log:[["t","内部規程集: 12規程 / 68章 / 341条"],["t","業界ガイド: 9章 / 214項目"],
+       ["ok","章立てパターンを検出: 総則→体制・役割→マニュアル等→適切な実施→評価・改善活動→罰則（8規程で共通）"]]},
+ {n:"備置要求項目の展開", d:"管理表の各項目を検索クエリに変換",
+  o:`${D.length}項目 → 検索クエリ 94本`,
+  log:[["t",`管理表から${D.length}項目を抽出`],["t","項目ごとに同義表現を展開（例「苦情対応」←→「顧客サポート」）"],["ok","検索クエリ 94本を生成"]]},
+ {n:"該当箇所の突合", d:"項目ごとに規程・条文を横断検索し、候補を順位づけ",
+  o:`該当あり ${N("ok")}件 / 要確認 ${N("warn")}件 / 該当なし ${N("ng")}件`,
+  log:[["in","349ページを横断検索中…"],["ok","規程名の直接一致: 14件"],
+       ["ok","内容の類似で対応付け: 7件（例「苦情対応マニュアル」→「顧客サポート等管理マニュアル」）"],
+       ["wn",`確信度がしきい値未満（0.70）: ${N("warn")}件 → 要確認に分類`],
+       ["wn",`候補なし: ${N("ng")}件 → 要作成に分類`]]},
+ {n:"根拠の付与", d:"該当箇所の抜粋と判定理由を付ける",
+  o:`${D.length}項目すべてに根拠を付与`,
+  log:[["t",`該当ありの${N("ok")}件に条文抜粋を付与`],
+       ["t","要確認・要作成の9件に「なぜそう判定したか」を付与"],
+       ["ok",`AIが黙って捨てた項目はありません（${D.length}/${D.length}に理由あり）`]]},
+ {n:"納品物の生成", d:"マッピング表・不足リスト・ひな型・ドラフトを出力",
+  o:"Excel 2件 / Word 4件を生成",
+  log:[["t",`該当箇所マッピング表.xlsx（${D.length}項目・根拠抜粋つき）`],["t",`不足項目リスト.xlsx（${N("ng")}件）`],
+       ["t","規程ひな型.docx（3型）／ 事故対応に関する業務規定_ドラフト.docx"],
+       ["t","作業手順書.docx ／ プロンプト集.docx"],["ok","完了 — 総処理時間 約3分"]]},
+];
+$('#steps').innerHTML = STEPS.map((s, i) => `
+  <div class="stp" id="stp${i}"><div class="dot">${i+1}</div>
+    <div class="sb"><div class="sn">${s.n}</div><div class="sd">${s.d}</div><div class="out">→ ${s.o}</div></div>
+  </div>`).join('');
+
+let running = false;
+function runPipe(){
+  if (running) return; running = true;
+  const b = $('#runBtn'); b.disabled = true;
+  b.innerHTML = '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>処理中…';
+  $('#log').innerHTML = ''; STEPS.forEach((_, i) => $('#stp' + i).className = 'stp');
+  addLog('t', '$ kitei-map run --kitei 内部規程集.pdf --guide 業界ガイド.pdf --list 管理表.xlsx');
+  let i = 0;
+  (function next(){
+    if (i >= STEPS.length){
+      running = false; b.disabled = false;
+      b.innerHTML = '<svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>もう一度実行';
+      $('#runNote').textContent = `前回の実行：たった今 / 約3分（デモでは短縮再現） / ${D.length}項目を判定`;
+      toast(`処理が完了しました。要作成${N('ng')}件・要確認${N('warn')}件を検出しました。`);
+      return;
+    }
+    const el = $('#stp' + i); el.className = 'stp run';
+    let j = 0; const s = STEPS[i];
+    (function line(){
+      if (j >= s.log.length){ el.className = 'stp done'; i++; setTimeout(next, 200); return; }
+      addLog(s.log[j][0], s.log[j][1]); j++; setTimeout(line, 320 + Math.random() * 220);
+    })();
+  })();
+}
+function addLog(k, t){
+  const box = $('#log'), d = document.createElement('div');
+  d.className = 'l ' + k;
+  d.textContent = (k === 'ok' ? '✓ ' : k === 'wn' ? '! ' : k === 'in' ? '▸ ' : '  ') + t;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+
+let tt;
+function toast(m){
+  const t = $('#toast'); t.textContent = m; t.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3400);
+}
+
+document.getElementById('tabn1').textContent = D.length;
+document.getElementById('tabn2').textContent = N('ng');
+renderRows();
+</script>
+</body>
+</html>
